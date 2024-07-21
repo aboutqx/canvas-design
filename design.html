@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>canvas</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #myCanvas {
+      width: 99vw;
+      height: calc(100vh - 105px);
+      border: 1px dashed pink;
+    }
+
+    #warp {
+      width: 100vw;
+      height: 100px;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <div class="warp">
+      <textarea type="text" cols="50" id="userInputField"></textarea>
+      <button id="btn">下载</button>
+    </div>
+    <canvas id="myCanvas" width="1080" height="1920"></canvas>
+  </div>
+</body>
+<script>
+
+  // 获取Canvas元素和其上下文
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+  // dpr = window.devicePixelRatio || 1,
+  //         bsr = ctx.webkitBackingStorePixelRatio ||
+  //               ctx.mozBackingStorePixelRatio ||
+  //               ctx.msBackingStorePixelRatio ||
+  //               ctx.oBackingStorePixelRatio ||
+  //               ctx.backingStorePixelRatio || 1
+
+  // 用户输入的文字
+  let bg, userInput;
+  const TextAlign = {
+    CENTER: 'center',
+    LEFT: 'left',
+    RIGHT: 'right',
+  };
+  let fontName = 'myfont';
+
+
+  // 创建一个可下载的链接
+  function downloadCanvasImage(canvas, filename = 'output.png') {
+    // 将Canvas内容转换为data URL
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // 创建隐藏的可下载链接
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+
+    // 触发点击事件来下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+
+  document.getElementById('userInputField').addEventListener('input', (event) => {
+    userInput = event.target.value;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bg, 0, 0, 1080, 1920);
+    drawText(
+      userInput,
+      700,
+      'Arial',
+      74,
+      lineSpacing = 0,
+      color = 'white',
+      strokeText = false,
+      align = 'center',
+    )
+  });
+
+  document.getElementById('btn').addEventListener('click', (event) => {
+    downloadCanvasImage(canvas, `text-image-${Date.now()}.png`);
+
+  })
+
+  /**
+   * Measures the width of a string for a given font.
+   * @param {string} text
+   * @param {IFont} font
+   * @returns {number}
+   */
+  function getTextWidth(text, font) {
+    const testContext = document.createElement('canvas').getContext('2d');
+    testContext.font = getCanvasFontProperty(font);
+
+    return testContext.measureText(text);
+  }
+
+  /**
+   * For a given string, returns a new string in which all the separate words (characters divided by a space) fit in the given width. Can add spaces into original words if they are too long.
+   * @param {string} text
+   * @param {number} availableWidth
+   * @param {IFont} font
+   * @returns {string}
+   */
+  function splitIntoFittingWords(text, availableWidth, font) {
+    const splitResults = [];
+
+    text.split(' ').forEach(word => {
+      if (getTextWidth(word, font).width < availableWidth) {
+        // word fits
+        splitResults.push(word);
+      } else {
+        // word does not fit, split into characters
+        groupText(word, '', availableWidth, font).forEach(entry => {
+          splitResults.push(entry);
+        });
+      }
+    });
+
+    return splitResults.join(' ');
+  }
+
+  /**
+   * Breaks up a string into lines that fit within the supplied width.
+   * @param {string} text
+   * @param {number} width
+   * @param {string} fontName
+   * @param {number} fontSize
+   * @returns {string[]}
+   */
+  function fitText(text, width, fontName, fontSize) {
+    const font = createFont(fontName, fontSize);
+    const fittingWords = splitIntoFittingWords(text, width, font);
+
+    return groupText(fittingWords, ' ', width, font);
+  }
+  /**
+  * Groups a given string into fitting parts. What a part is is defined by the character to split the original string on.
+  * @param {string} text
+  * @param {string} splitOn
+  * @param {number} availableWidth
+  * @param {IFont} font
+  * @returns {string[]}
+  */
+  function groupText(text, splitOn, availableWidth, font) {
+    return text.split(splitOn).reduce((resultingLines, currentItem) => {
+      if (resultingLines.length === 0) {
+        resultingLines.push('');
+      }
+      const lastLine = resultingLines[resultingLines.length - 1];
+
+      // test if the last line with the current word would fit
+      const testLine = (lastLine.length > 0 ? lastLine + splitOn : lastLine) + currentItem;
+      const testLineWidth = getTextWidth(testLine, font).width;
+      if (
+        testLineWidth > availableWidth &&
+        !(resultingLines.length === 1 && resultingLines[0].length === 0)
+      ) {
+        // does not fit, create new line
+        resultingLines.push(currentItem);
+      } else {
+        // add to current line
+        resultingLines[resultingLines.length - 1] = testLine;
+      }
+
+      return resultingLines;
+    }, []);
+  }
+
+
+  const createFont = (name, size) => ({ size, name });
+
+  function getCanvasFontProperty(font) {
+    return `${font.size}px ${font.name}`;
+  }
+
+  function drawText(
+    text,
+    width,
+    fontName,
+    fontSize, //number
+    lineSpacing = 0,
+    color = 'white',
+    strokeText = false,
+    align = 'center',
+    topOffset = 160,
+    leftOffset = 0,
+    paraSpacing = 40
+  ) {
+
+
+    let isWrap = /\r?\n/s.test(text)
+    let paras = [];
+    if (isWrap) {
+      paras = text.split('\r\n');
+    } else {
+      paras = [text];
+    }
+
+    const alignModes = [TextAlign.LEFT, TextAlign.CENTER, TextAlign.RIGHT];
+    if (alignModes.indexOf(align) === -1) {
+      throw new Error(`Invalid alignMode (possible options: ${alignModes.join(',')})`);
+    }
+
+    // for now, just add spacing to fix fonts falling ut of view sometimes (at the bottom specifically)
+    // padding will be removed by trimming canvas at the end
+    const padding = { x: 20, y: fontSize * 2 }; // todo this needs a better fix
+
+    const font = createFont(fontName, fontSize);
+
+    // create and init canvas
+    const canvas = document.getElementById('myCanvas');
+    const context = canvas.getContext('2d');
+
+    context.font = getCanvasFontProperty(font);
+
+    context.textAlign = align;
+    context.textBaseline = 'top';
+    context.fillStyle = color;
+    context.strokeStyle = color;
+
+    // draw lines
+    let yOffset = topOffset;
+    let baseX = leftOffset;
+    switch (align) {
+      case TextAlign.RIGHT: {
+        baseX += canvas.width - padding.x;
+        break;
+      }
+      case TextAlign.LEFT: {
+        baseX += padding.x;
+        break;
+      }
+      case TextAlign.CENTER: {
+        baseX += canvas.width * 0.5;
+        break;
+      }
+    }
+
+    let cursor = {
+      x: canvas.width * 0.5,
+      y: yOffset,
+    };
+    for (let i = 0; i < paras.length; i++) {
+      if (i != 0) {
+        yOffset += paraSpacing;
+      }
+      let lines = fitText(paras[i], width - 2 * padding.x, fontName, fontSize);
+
+      lines.forEach(line => {
+        if (strokeText) {
+          context.strokeText(line, baseX, yOffset);
+        } else {
+          context.fillText(line, baseX, yOffset);
+        }
+
+        cursor = {
+          x: canvas.width * 0.5 + 0.5 * getTextWidth(line, font).width,
+          y: yOffset,
+        };
+
+        yOffset += (fontSize + lineSpacing);
+      });
+    }
+
+  }
+
+
+  const loadImg = (url) => {
+    return new Promise(function (resolve, reject) {
+      const image = new Image();
+      image.onload = function () {
+        resolve(image);
+      };
+      image.onerror = function (error) {
+        reject(error);
+      };
+      image.src = url;
+    });
+  };
+
+  const loadFont = (url) => {
+    return new Promise(function (resolve, reject) {
+      const font = new FontFace(fontName, `url(${url})`, {
+        style: "normal",
+        weight: "400",
+      });
+      font.load().then(() => {
+        resolve(font);
+      }, (error) => {
+        reject(error);
+      });
+    });
+  };
+
+  function addFontFace(fontFamily, fontUrl) {
+    const fontFace = document.querySelector('style');
+    fontFace.innerHTML += `@font-face {
+    font-family: "${fontFamily}";
+    src: url("${fontUrl}") ;
+  }`;
+
+  }
+
+  const imgUrl = './bg4.jpg';
+  const fontUrl = 'TEMPSITC.ttf';
+  addFontFace(fontName, fontUrl);
+
+  // reset to use built-in font
+  //fontName = 'times';
+
+  userInput = `He who is strong enough to fight to death for one word,\r\noften doesn't have the courage to admit what he has said is wrong.`;
+
+
+
+  Promise.all([loadImg(imgUrl), loadFont(fontUrl)])
+    .then(results => {
+      const [img, font] = results;
+
+      bg = img;
+      ctx.drawImage(img, 0, 0, 1080, 1920);
+      drawText(
+        userInput,
+        700,
+        fontName,
+        80,
+        lineSpacing = 50,
+        color = 'white',
+        strokeText = false,
+        align = 'left',
+        topOffset = 360,
+        leftOffset = 200,
+        paraSpacing = 40
+      )
+
+    })
+    .catch(error => {
+      console.error(error);
+    });
+
+
+</script>
+
+</html>
