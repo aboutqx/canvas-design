@@ -31,7 +31,7 @@
       <textarea type="text" cols="50" id="userInputField"></textarea>
       <button id="btn">下载</button>
     </div>
-    <canvas id="myCanvas" width="1080" height="1920"></canvas>
+    <canvas id="myCanvas" width="1159.5px" height="2217px"></canvas>
   </div>
 </body>
 <script>
@@ -39,6 +39,7 @@
   // 获取Canvas元素和其上下文
   const canvas = document.getElementById('myCanvas');
   const ctx = canvas.getContext('2d');
+
   // dpr = window.devicePixelRatio || 1,
   //         bsr = ctx.webkitBackingStorePixelRatio ||
   //               ctx.mozBackingStorePixelRatio ||
@@ -116,6 +117,7 @@
    */
   function splitIntoFittingWords(text, availableWidth, font) {
     const splitResults = [];
+    text = text.trim();
 
     text.split(' ').forEach(word => {
       if (getTextWidth(word, font).width < availableWidth) {
@@ -200,7 +202,6 @@
     paraSpacing = 40
   ) {
 
-
     let isWrap = /\r?\n/s.test(text)
     let paras = [];
     if (isWrap) {
@@ -223,6 +224,7 @@
     // create and init canvas
     const canvas = document.getElementById('myCanvas');
     const context = canvas.getContext('2d');
+
 
     context.font = getCanvasFontProperty(font);
 
@@ -314,35 +316,43 @@
 
   }
 
-  const imgUrl = './bg4.jpg';
-  const fontUrl = 'TEMPSITC.ttf';
+  const imgUrl = './bg2.jpg';
+  const fontUrl = 'CENTAUR.ttf';
   addFontFace(fontName, fontUrl);
 
-  // reset to use built-in font
-  //fontName = 'times';
+// reset to use built-in font
+//FangSong STFangsong
+  fontName = 'FangSong';
 
-  userInput = `He who is strong enough to fight to death for one word,\r\noften doesn't have the courage to admit what he has said is wrong.`;
-
-
-
+  userInput =`
+  春光：\r\n
+春风的纤手往我的花篮里塞满了五色花朵，\r\n
+可是不久，这花篮里的花该委谢了，\r\n
+请诸位一一采摘吧。`
+  
+  
+  
+  
   Promise.all([loadImg(imgUrl), loadFont(fontUrl)])
     .then(results => {
       const [img, font] = results;
 
       bg = img;
-      ctx.drawImage(img, 0, 0, 1080, 1920);
+
+      ctx.drawImage(img, 0, 0, 386.5*3, 2217);
+
       drawText(
         userInput,
-        700,
+        1080, //700
         fontName,
-        80,
+        77, //80 71
         lineSpacing = 50,
         color = 'white',
         strokeText = false,
         align = 'left',
-        topOffset = 360,
-        leftOffset = 200,
-        paraSpacing = 40
+        topOffset = 720,
+        leftOffset = 50,
+        paraSpacing = 53 //66
       )
 
     })
