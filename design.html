@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 
 <head>
   <meta charset="UTF-8">
@@ -12,7 +12,7 @@
 
     #myCanvas {
       width: 99vw;
-      height: calc(100vh - 105px);
+      /* height: calc(100vh - 105px); */
       border: 1px dashed pink;
     }
 
@@ -30,8 +30,9 @@
     <div class="warp">
       <textarea type="text" cols="50" id="userInputField"></textarea>
       <button id="btn">下载</button>
-    </div>
-    <canvas id="myCanvas" width="1159.5px" height="2217px"></canvas>
+    </div> 
+    <!--1159.5 2217 -->
+    <canvas id="myCanvas" width="1159.5px" height="2300px"></canvas>
   </div>
 </body>
 <script>
@@ -117,7 +118,7 @@
    */
   function splitIntoFittingWords(text, availableWidth, font) {
     const splitResults = [];
-    text = text.trim();
+    // text = text.trim();
 
     text.split(' ').forEach(word => {
       if (getTextWidth(word, font).width < availableWidth) {
@@ -199,16 +200,18 @@
     align = 'center',
     topOffset = 160,
     leftOffset = 0,
-    paraSpacing = 40
+    paraSpacing = 40,
   ) {
 
-    let isWrap = /\r?\n/s.test(text)
+  
+    let isPara = /\p/s.test(text)
     let paras = [];
-    if (isWrap) {
-      paras = text.split('\r\n');
+    if (isPara) {
+      paras = text.split('\p');
     } else {
       paras = [text];
     }
+    
 
     const alignModes = [TextAlign.LEFT, TextAlign.CENTER, TextAlign.RIGHT];
     if (alignModes.indexOf(align) === -1) {
@@ -255,26 +258,37 @@
       x: canvas.width * 0.5,
       y: yOffset,
     };
+
+    let tempLines;
     for (let i = 0; i < paras.length; i++) {
-      if (i != 0) {
+      let isWrap = /\r?\n/s.test(paras[i])
+      if (isWrap) {
+        tempLines = paras[i].split('\r\n')
+      }
+      else {
+        tempLines = [paras[i]]
+      }
+      if(i!=0) {
         yOffset += paraSpacing;
       }
-      let lines = fitText(paras[i], width - 2 * padding.x, fontName, fontSize);
+      for(let j = 0; j < tempLines.length; j++) {
+        let lines = fitText(tempLines[j], width - 2 * padding.x, fontName, fontSize);
 
-      lines.forEach(line => {
-        if (strokeText) {
-          context.strokeText(line, baseX, yOffset);
-        } else {
-          context.fillText(line, baseX, yOffset);
-        }
+        lines.forEach(line => {
+          if (strokeText) {
+            context.strokeText(line, baseX, yOffset);
+          } else {
+            context.fillText(line, baseX, yOffset);
+          }
 
-        cursor = {
-          x: canvas.width * 0.5 + 0.5 * getTextWidth(line, font).width,
-          y: yOffset,
-        };
+          cursor = {
+            x: canvas.width * 0.5 + 0.5 * getTextWidth(line, font).width,
+            y: yOffset,
+          };
 
-        yOffset += (fontSize + lineSpacing);
-      });
+          yOffset += (fontSize + lineSpacing);
+        });
+      }
     }
 
   }
@@ -316,43 +330,64 @@
 
   }
 
-  const imgUrl = './bg2.jpg';
-  const fontUrl = 'CENTAUR.ttf';
+  const imgUrl = './bg.jpg';
+  const fontUrl = 'FZYTK.ttf';
   addFontFace(fontName, fontUrl);
 
 // reset to use built-in font
 //FangSong STFangsong
-  fontName = 'FangSong';
+fontName = 'cursive';
 
-  userInput =`
-  春光：\r\n
-春风的纤手往我的花篮里塞满了五色花朵，\r\n
-可是不久，这花篮里的花该委谢了，\r\n
-请诸位一一采摘吧。`
-  
-  
-  
+  userInput =`        
+         三\r\n
+即便身强体壮\r\n
+也别轻易投身事务\r\n
+就算思维敏捷\r\n
+也不合适去改变什么\r\n
+青年的责任在于\r\n
+待在家里看书自省\r\n
+\p
+外面路铺好了又挖，\r\n
+噪音震天，车辆鸣笛横行，\r\n
+还是岁月静好，草长莺飞？\r\n
+都没有关系\r\n
+青年的义务在于\r\n
+始终如一地看清\r\n
+\p
+战火在地球仪的角落点燃\r\n
+阵亡人数是无关痛痒的数字\r\n
+有人黑色头巾下掩面哭泣，\r\n
+有人穿着节日礼服欢庆街头\r\n
+发生什么就发生吧，\r\n
+青年们喜爱静心\r\n
+\p
+世界无时无刻不在变化\r\n
+茫然地跟在众人身后\r\n
+或许依然赶不上潮流\r\n
+就这样吧，安于现状吧`
   
   Promise.all([loadImg(imgUrl), loadFont(fontUrl)])
     .then(results => {
       const [img, font] = results;
 
       bg = img;
-
-      ctx.drawImage(img, 0, 0, 386.5*3, 2217);
+       
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // ctx.fillStyle = 'rebeccapurple'; 
+      // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       drawText(
         userInput,
-        1080, //700
+        1030, //700
         fontName,
-        77, //80 71
-        lineSpacing = 50,
+        54, //80 71
+        lineSpacing =34,
         color = 'white',
         strokeText = false,
         align = 'left',
-        topOffset = 720,
-        leftOffset = 50,
-        paraSpacing = 53 //66
+        topOffset = 100,
+        leftOffset = 240,
+        paraSpacing = -40, //66
       )
 
     })
