@@ -32,21 +32,21 @@
       <button id="btn">下载</button>
     </div> 
     <!--1159.5 2217 -->
-    <canvas id="myCanvas" width="1159.5px" height="2300px"></canvas>
+    <canvas id="myCanvas" width="1159.5px" height="1800px"></canvas>
   </div>
 </body>
 <script>
 
   // 获取Canvas元素和其上下文
   const canvas = document.getElementById('myCanvas');
-  const ctx = canvas.getContext('2d');
+  const context = canvas.getContext('2d');
 
   // dpr = window.devicePixelRatio || 1,
-  //         bsr = ctx.webkitBackingStorePixelRatio ||
-  //               ctx.mozBackingStorePixelRatio ||
-  //               ctx.msBackingStorePixelRatio ||
-  //               ctx.oBackingStorePixelRatio ||
-  //               ctx.backingStorePixelRatio || 1
+  //         bsr = context.webkitBackingStorePixelRatio ||
+  //               context.mozBackingStorePixelRatio ||
+  //               context.msBackingStorePixelRatio ||
+  //               context.oBackingStorePixelRatio ||
+  //               context.backingStorePixelRatio || 1
 
   // 用户输入的文字
   let bg, userInput;
@@ -77,8 +77,8 @@
 
   document.getElementById('userInputField').addEventListener('input', (event) => {
     userInput = event.target.value;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bg, 0, 0, 1080, 1920);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bg, 0, 0, 1080, 1920);
     drawText(
       userInput,
       700,
@@ -189,6 +189,51 @@
     return `${font.size}px ${font.name}`;
   }
 
+
+  function darwLines(paras, baseX, padding, width, font , fontName, fontSize,yOffset){
+    let y = 0;
+    let tempLines;
+
+    if(!isNaN(yOffset)){
+      y += yOffset;
+    }
+    for (let i = 0; i < paras.length; i++) {
+      let isWrap = /\r?\n/s.test(paras[i])
+      if (isWrap) {
+        tempLines = paras[i].split('\r\n')
+      }
+      else {
+        tempLines = [paras[i]]
+      }
+      if(i!=0) {
+        y += paraSpacing;
+      }
+      for(let j = 0; j < tempLines.length; j++) {
+        let lines = fitText(tempLines[j], width - 2 * padding.x, fontName, fontSize);
+
+        lines.forEach(line => {
+          if(!isNaN(yOffset)){
+            if (strokeText) {
+              context.strokeText(line, baseX, y);
+            } else {
+              context.fillText(line, baseX, y);
+            }
+
+            let cursor = {
+              x: canvas.width * 0.5 + 0.5 * getTextWidth(line, font).width,
+              y: yOffset,
+            };
+          }
+
+          y += (fontSize + lineSpacing);
+        });
+      }
+    }
+    return (canvas.height - y + (fontSize ))/2
+
+  }
+
+
   function drawText(
     text,
     width,
@@ -198,11 +243,14 @@
     color = 'white',
     strokeText = false,
     align = 'center',
-    topOffset = 160,
     leftOffset = 0,
     paraSpacing = 40,
   ) {
-
+    if(fontSize < 20) {
+      fontSize = 20;
+    } else if(fontSize > 75){
+      fontSize = 75;
+    }
   
     let isPara = /\p/s.test(text)
     let paras = [];
@@ -224,10 +272,7 @@
 
     const font = createFont(fontName, fontSize);
 
-    // create and init canvas
-    const canvas = document.getElementById('myCanvas');
-    const context = canvas.getContext('2d');
-
+    // fill canvas options
 
     context.font = getCanvasFontProperty(font);
 
@@ -237,7 +282,7 @@
     context.strokeStyle = color;
 
     // draw lines
-    let yOffset = topOffset;
+    let yOffset = 0;
     let baseX = leftOffset;
     switch (align) {
       case TextAlign.RIGHT: {
@@ -253,43 +298,9 @@
         break;
       }
     }
-
-    let cursor = {
-      x: canvas.width * 0.5,
-      y: yOffset,
-    };
-
-    let tempLines;
-    for (let i = 0; i < paras.length; i++) {
-      let isWrap = /\r?\n/s.test(paras[i])
-      if (isWrap) {
-        tempLines = paras[i].split('\r\n')
-      }
-      else {
-        tempLines = [paras[i]]
-      }
-      if(i!=0) {
-        yOffset += paraSpacing;
-      }
-      for(let j = 0; j < tempLines.length; j++) {
-        let lines = fitText(tempLines[j], width - 2 * padding.x, fontName, fontSize);
-
-        lines.forEach(line => {
-          if (strokeText) {
-            context.strokeText(line, baseX, yOffset);
-          } else {
-            context.fillText(line, baseX, yOffset);
-          }
-
-          cursor = {
-            x: canvas.width * 0.5 + 0.5 * getTextWidth(line, font).width,
-            y: yOffset,
-          };
-
-          yOffset += (fontSize + lineSpacing);
-        });
-      }
-    }
+    yOffset = darwLines(paras, baseX, padding, width, font , fontName, fontSize);
+    darwLines(paras, baseX, padding, width, font , fontName, fontSize, yOffset);
+    
 
   }
 
@@ -324,13 +335,13 @@
   function addFontFace(fontFamily, fontUrl) {
     const fontFace = document.querySelector('style');
     fontFace.innerHTML += `@font-face {
-    font-family: "${fontFamily}";
-    src: url("${fontUrl}") ;
-  }`;
+      font-family: "${fontFamily}";
+      src: url("${fontUrl}") ;
+    }`;
 
   }
 
-  const imgUrl = './bg.jpg';
+  const imgUrl = './bg6.jpg';
   const fontUrl = 'FZYTK.ttf';
   addFontFace(fontName, fontUrl);
 
@@ -338,56 +349,44 @@
 //FangSong STFangsong
 fontName = 'cursive';
 
-  userInput =`        
-         三\r\n
-即便身强体壮\r\n
-也别轻易投身事务\r\n
-就算思维敏捷\r\n
-也不合适去改变什么\r\n
-青年的责任在于\r\n
-待在家里看书自省\r\n
-\p
-外面路铺好了又挖，\r\n
-噪音震天，车辆鸣笛横行，\r\n
-还是岁月静好，草长莺飞？\r\n
-都没有关系\r\n
-青年的义务在于\r\n
-始终如一地看清\r\n
-\p
-战火在地球仪的角落点燃\r\n
-阵亡人数是无关痛痒的数字\r\n
-有人黑色头巾下掩面哭泣，\r\n
-有人穿着节日礼服欢庆街头\r\n
-发生什么就发生吧，\r\n
-青年们喜爱静心\r\n
-\p
-世界无时无刻不在变化\r\n
-茫然地跟在众人身后\r\n
-或许依然赶不上潮流\r\n
-就这样吧，安于现状吧`
+  userInput =` 
+贪婪地，我们与睡眠对抗着\r\n
+从黑夜手中夺回偷逝的，\r\n
+结果是，也失去了能劳作的白昼
+`
   
   Promise.all([loadImg(imgUrl), loadFont(fontUrl)])
     .then(results => {
       const [img, font] = results;
 
       bg = img;
-       
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      // ctx.fillStyle = 'rebeccapurple'; 
-      // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+      let imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      let data = imageData.data
+      // 遍历像素
+      for (let i = 0; i < data.length; i += 4) {
+        const a = .7
+        data[i + 0] *= a
+        data[i + 1] *= a
+        data[i + 2] *= a
+      }
+      // 在指定位置输出图片
+      context.putImageData(imageData, 0, 0)
+      //context.fillStyle = 'white'; 
+      //context.fillRect(0, 0, canvas.width, canvas.height);
 
       drawText(
         userInput,
-        1030, //700
+        1000, //700
         fontName,
-        54, //80 71
-        lineSpacing =34,
+        84, //71
+        lineSpacing =86,
         color = 'white',
         strokeText = false,
-        align = 'left',
-        topOffset = 100,
-        leftOffset = 240,
-        paraSpacing = -40, //66
+        align = 'center',
+        leftOffset = 0,
+        paraSpacing = -15, //66
       )
 
     })
