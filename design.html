@@ -190,7 +190,7 @@
   }
 
 
-  function darwLines(paras, baseX, padding, width, font , fontName, fontSize,yOffset){
+  function darwLines(paras, baseX, padding, width, font , fontName, fontSize, lineSpacing, paraSpacing, yOffset){
     let y = 0;
     let tempLines;
 
@@ -229,7 +229,7 @@
         });
       }
     }
-    return (canvas.height - y + (fontSize ))/2
+    return (canvas.height - (y + fontSize +lineSpacing) )/2
 
   }
 
@@ -298,8 +298,8 @@
         break;
       }
     }
-    yOffset = darwLines(paras, baseX, padding, width, font , fontName, fontSize);
-    darwLines(paras, baseX, padding, width, font , fontName, fontSize, yOffset);
+    yOffset = darwLines(paras, baseX, padding, width, font , fontName, lineSpacing, paraSpacing, fontSize);
+    darwLines(paras, baseX, padding, width, font , fontName, fontSize, lineSpacing, paraSpacing, yOffset);
     
 
   }
