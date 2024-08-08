@@ -11,7 +11,7 @@
     }
 
     #myCanvas {
-      width: 99vw;
+      width: 99.6vw;
       /* height: calc(100vh - 105px); */
       border: 1px dashed pink;
     }
@@ -32,7 +32,7 @@
       <button id="btn">下载</button>
     </div> 
     <!--1159.5 2217 -->
-    <canvas id="myCanvas" width="1159.5px" height="1800px"></canvas>
+    <canvas id="myCanvas" width="1159.5px" height="2200px"></canvas>
   </div>
 </body>
 <script>
@@ -190,7 +190,7 @@
   }
 
 
-  function darwLines(paras, baseX, padding, width, font , fontName, fontSize, lineSpacing, paraSpacing, yOffset){
+  function darwLines(paras, baseX, padding, width, font, fontName, fontSize, lineSpacing, paraSpacing, yOffset){
     let y = 0;
     let tempLines;
 
@@ -200,7 +200,7 @@
     for (let i = 0; i < paras.length; i++) {
       let isWrap = /\r?\n/s.test(paras[i])
       if (isWrap) {
-        tempLines = paras[i].split('\r\n')
+        tempLines = paras[i].split('\n')
       }
       else {
         tempLines = [paras[i]]
@@ -229,10 +229,18 @@
         });
       }
     }
-    return (canvas.height - (y + fontSize +lineSpacing) )/2
 
+    let t = (canvas.height - (y +lineSpacing+fontSize) )/2
+    if(t <=0) t=0;
+    return t
   }
 
+  function addAuthor(baseX, y, fontName, fontSize, lineSpacing){
+    const font = createFont(fontName, fontSize -8);
+    context.font = getCanvasFontProperty(font);
+    const author='-by 山中游荡-';
+    context.fillText(author, baseX, canvas.height - y -fontSize);
+  }
 
   function drawText(
     text,
@@ -251,7 +259,7 @@
     } else if(fontSize > 75){
       fontSize = 75;
     }
-  
+    text = text.trimEnd('\n');
     let isPara = /\p/s.test(text)
     let paras = [];
     if (isPara) {
@@ -298,9 +306,9 @@
         break;
       }
     }
-    yOffset = darwLines(paras, baseX, padding, width, font , fontName, lineSpacing, paraSpacing, fontSize);
+    yOffset = darwLines(paras, baseX, padding, width, font , fontName, fontSize, lineSpacing, paraSpacing);
     darwLines(paras, baseX, padding, width, font , fontName, fontSize, lineSpacing, paraSpacing, yOffset);
-    
+    addAuthor(baseX, yOffset, fontName, fontSize, lineSpacing);
 
   }
 
@@ -342,17 +350,42 @@
   }
 
   const imgUrl = './bg6.jpg';
-  const fontUrl = 'FZYTK.ttf';
+  const fontUrl = 'pala.ttf';
   addFontFace(fontName, fontUrl);
 
 // reset to use built-in font
-//FangSong STFangsong
-fontName = 'cursive';
+//FangSong STFangsong STSong  SimSun 
+fontName = 'stzhongsong ';
 
+//删除最后一行\r\n
   userInput =` 
-贪婪地，我们与睡眠对抗着\r\n
-从黑夜手中夺回偷逝的，\r\n
-结果是，也失去了能劳作的白昼
+打开手机，不等打开新闻
+一条接一条的热点跳动
+世界大小事好像尽在手掌，
+透过这小小的泛光的屏幕，
+激起一阵阵感动和热泪
+滑动手指，一股脑儿忘掉
+
+过去的事故，赫然
+躺在今天的新闻头条，
+没有人去真正关心，
+如果历史永远会重演
+有什么好操心的？
+不如搬张椅子睡大觉
+
+预报的暴雨下了几天
+洪水冲进了家门
+猫咪摔碎了桌上的杯子
+女明星摔倒了在红毯
+有什么好操心的？
+不如搬张椅子睡大觉
+
+世界无时无刻不在变化
+茫然地跟在众人身后
+或许依然赶不上潮流
+就这样吧，安于现状吧
+
+
 `
   
   Promise.all([loadImg(imgUrl), loadFont(fontUrl)])
@@ -373,20 +406,20 @@ fontName = 'cursive';
       }
       // 在指定位置输出图片
       context.putImageData(imageData, 0, 0)
-      //context.fillStyle = 'white'; 
-      //context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = 'white'; 
+      context.fillRect(0, 0, canvas.width, canvas.height);
 
       drawText(
         userInput,
         1000, //700
         fontName,
-        84, //71
-        lineSpacing =86,
-        color = 'white',
+        45, //71
+        lineSpacing =31,
+        color = 'black',
         strokeText = false,
         align = 'center',
         leftOffset = 0,
-        paraSpacing = -15, //66
+        paraSpacing = -41, //66
       )
 
     })
